@@ -9,7 +9,9 @@ const ContactsList = ({ visibleContacts, onDelete }) => {
           {contact.name}: {contact.number}
           <Button
             type="button"
-            onClick={() => onDelete(contact.id, contact.name)}
+            onClick={() => {
+              onDelete(contact.id, contact.name);
+            }}
           >
             delete
           </Button>
