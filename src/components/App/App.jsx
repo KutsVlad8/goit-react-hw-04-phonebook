@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import Filter from 'components/Filter/Filter';
 import ContactsList from '../ContactsList/ContactsList';
-import ContactForm from '../ContactForm/ContactForm';
+import { ContactForm } from '../ContactForm/ContactForm';
 import {
   Container,
   Title,
@@ -19,6 +19,7 @@ class App extends Component {
   };
 
   addContact = data => {
+    console.log(data);
     const oldContact = this.state.contacts.map(oldContact =>
       oldContact.name.toLowerCase()
     );
