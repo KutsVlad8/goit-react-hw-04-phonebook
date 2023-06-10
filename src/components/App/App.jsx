@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Filter from 'components/Filter/Filter';
 import ContactsList from '../ContactsList/ContactsList';
 import { ContactForm } from '../ContactForm/ContactForm';
@@ -12,15 +12,14 @@ import {
 import { nanoid } from 'nanoid';
 import Notiflix from 'notiflix';
 
-class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useState(
+    JSON.parse(window.localStorage.getItem('contacts')) ?? []
+  );
+  const [filter, setFilter] = useState('');
 
-  addContact = data => {
-    console.log(data);
-    const oldContact = this.state.contacts.map(oldContact =>
+  const addContact = data => {
+    const oldContact = contacts.map(oldContact =>
       oldContact.name.toLowerCase()
     );
 
@@ -30,26 +29,22 @@ class App extends Component {
 
     const newContact = { id: nanoid(2), ...data };
 
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact],
-    }));
+    setContacts([...contacts, newContact]);
+
     Notiflix.Notify.success(`${data.name} contact has been added `);
   };
 
-  deleteContact = (contactId, name) => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const deleteContact = (contactId, name) => {
+    setContacts(contacts.filter(contact => contact.id !== contactId));
 
     Notiflix.Notify.info(`Contact ${name}  has been deleted`);
   };
 
-  changeFilter = event => {
-    this.setState({ filter: event.currentTarget.value });
+  const changeFilter = event => {
+    setFilter(event.currentTarget.value);
   };
 
-  getVisibleContacts = () => {
-    const { filter, contacts } = this.state;
+  const getVisibleContacts = () => {
     const normalizeFilter = filter.toLowerCase();
 
     return contacts.filter(contact =>
@@ -57,53 +52,35 @@ class App extends Component {
     );
   };
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
+  const visibleContacts = getVisibleContacts();
 
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-    }
-  }
+  useEffect(() => {
+    window.localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+  return (
+    <>
+      <Head>PhoneBook</Head>
+      <Container>
+        <FormContainer>
+          <ContactForm onSubmit={addContact} />
+        </FormContainer>
 
-  render() {
-    const visibleContacts = this.getVisibleContacts();
-
-    return (
-      <>
-        <Head>PhoneBook</Head>
-        <Container>
-          <FormContainer>
-            <ContactForm onSubmit={this.addContact} />
-          </FormContainer>
-
-          <LeftContainer>
-            {visibleContacts.length === 0 ? (
-              <p>Sorry,you have not contacts in phonebook!</p>
-            ) : (
-              <>
-                <Title>Contacts</Title>
-                <Filter
-                  value={this.state.filter}
-                  onChange={this.changeFilter}
-                />
-                <ContactsList
-                  visibleContacts={visibleContacts}
-                  onDelete={this.deleteContact}
-                />
-              </>
-            )}
-          </LeftContainer>
-        </Container>
-      </>
-    );
-  }
-}
-
-export default App;
+        <LeftContainer>
+          {contacts.length === 0 ? (
+            <p>Sorry,you have not contacts in phonebook!</p>
+          ) : (
+            <>
+              <Title>Contacts</Title>
+              <Filter value={filter} onChange={changeFilter} />
+              <ContactsList
+                visibleContacts={visibleContacts}
+                onDelete={deleteContact}
+              />
+            </>
+          )}
+        </LeftContainer>
+      </Container>
+    </>
+  );
+};
